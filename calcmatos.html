@@ -121,6 +121,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 /* INFO TIPS */
 .tip{font-size:11px;color:var(--muted);font-style:italic;margin-top:5px}
 
+/* COLLAPSIBLE SUB-SECTIONS (plâtre) */
+.psub{border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;background:var(--bg)}
+.psub-head{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.psub-head:active{background:rgba(0,0,0,0.04)}
+.psub-chev{color:var(--brand);font-size:13px;font-weight:700;width:14px;text-align:center;transition:transform 0.18s}
+.psub.open .psub-chev{transform:rotate(90deg)}
+.psub-num{font-weight:800;color:var(--brand);font-size:14px;flex-shrink:0}
+.psub-title{flex:1;font-weight:700;font-size:14px;color:var(--text)}
+.psub-badge{font-size:11px;color:#fff;font-weight:700;background:var(--brand);padding:3px 9px;border-radius:10px;display:none}
+.psub-badge.on{display:inline-block}
+.psub-body{padding:14px;display:none;border-top:1.5px solid var(--border);background:var(--card)}
+.psub.open .psub-body{display:block}
+
 /* HELPERS */
 .hidden{display:none !important}
 </style>
@@ -255,6 +268,26 @@ function packKg(kg, sacKg){
 function withMargin(qty, percent){
   return qty * (100 + percent) / 100;
 }
+// Petit titre de sous-section (séparateur dans un bloc métier)
+function subHead(t){
+  return '<div style="border-top:1.5px dashed var(--border);margin:16px 0 10px;padding-top:10px"><div style="font-size:12px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">'+t+'</div></div>';
+}
+// Sous-section pliable (utilisée dans plâtre)
+function pSubSection(id, num, title, body){
+  return '<div class="psub" id="psub-'+id+'">'
+    +'<div class="psub-head" onclick="togglePSub(\''+id+'\')">'
+      +'<span class="psub-chev">▶</span>'
+      +'<span class="psub-num">'+num+'</span>'
+      +'<span class="psub-title">'+title+'</span>'
+      +'<span class="psub-badge" id="psub-badge-'+id+'"></span>'
+    +'</div>'
+    +'<div class="psub-body">'+body+'</div>'
+  +'</div>';
+}
+function togglePSub(id){
+  var el=document.getElementById('psub-'+id);
+  if(el) el.classList.toggle('open');
+}
 
 // === MÉTIERS — définition ===
 // Chaque métier : icon, label, render des inputs, fonction calc qui retourne items
@@ -307,32 +340,211 @@ var METIERS = {
   platre: {
     icon:'🪨', label:'Plâtre', color:'#d4a373',
     renderInputs: function(){
-      return '<div class="frow"><label>Surface à enduire/lisser</label><div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="pl-surf-enduit" placeholder="0"><span class="unit-tag">m²</span></div></div>'
-        +'<div class="frow"><label>Épaisseur d\'enduit</label><select class="fselect" id="pl-epais"><option value="1">1 mm (lissage)</option><option value="2" selected>2 mm (standard)</option><option value="3">3 mm (réparation)</option></select></div>'
-        +'<div style="border-top:1.5px dashed var(--border);margin:14px 0 10px;padding-top:10px"><div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Plaques BA13 (optionnel)</div></div>'
-        +'<div class="frow"><label>Surface à doubler en BA13</label><div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="pl-surf-ba13" placeholder="0"><span class="unit-tag">m²</span></div><div class="tip">Laisse 0 si pas de doublage BA13</div></div>';
+      var s = '<div class="tip" style="margin-bottom:10px">Touche un titre pour ouvrir/fermer la section. Remplis seulement ce dont tu as besoin.</div>';
+
+      // ① Lissage
+      s += pSubSection('liss', '①', 'Lissage / Enduit',
+        '<div class="frow"><label>Surface à enduire</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="pl-surf-enduit" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow"><label>Épaisseur</label><select class="fselect" id="pl-epais"><option value="1">1 mm (lissage)</option><option value="2" selected>2 mm (standard)</option><option value="3">3 mm (réparation)</option></select></div>'
+      );
+
+      // ② Cloisons placo-plâtre (séparatives, 2 faces)
+      s += pSubSection('clo', '②', 'Cloisons placo-plâtre (2 faces)',
+        '<div class="frow"><label>Surface cloison (1 face)</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="pl-surf-clo" placeholder="0"><span class="unit-tag">m²</span></div>'
+        +'<div class="tip">Mesure une seule face — les plaques sont automatiquement comptées des deux côtés</div></div>'
+        +'<div class="frow2">'
+          +'<div><label>Épaisseur cloison</label><select class="fselect" id="pl-clo-rail"><option value="50" selected>50 mm</option><option value="75">75 mm</option><option value="100">100 mm</option></select></div>'
+          +'<div><label>Couches / face</label><select class="fselect" id="pl-clo-couches"><option value="1" selected>1 couche</option><option value="2">2 couches</option></select></div>'
+        +'</div>'
+        +'<div class="frow"><label>Type de plaque</label><select class="fselect" id="pl-clo-type"><option value="std" selected>Standard (BA13)</option><option value="hydro">Hydrofuge (verte)</option><option value="feu">Anti-feu (rose)</option></select></div>'
+        +'<label class="crow on" id="pl-clo-laine-row"><input type="checkbox" id="pl-clo-laine" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Laine d\'isolation entre rails</span></label>'
+        +'<div class="frow"><label>Épaisseur laine</label><select class="fselect" id="pl-clo-laine-ep"><option value="4">4 cm</option><option value="5" selected>5 cm</option><option value="6">6 cm</option></select></div>'
+        +'<div class="frow"><label>Finition joints</label><select class="fselect" id="pl-clo-finit"><option value="bande" selected>Bande blanche papier</option><option value="auto">Bande autocollante</option></select></div>'
+      );
+
+      // ③ Doublage placo (1 face, sur rails)
+      s += pSubSection('doub', '③', 'Doublage placo (1 face, sur rails)',
+        '<div class="frow"><label>Surface doublage</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="pl-surf-doub" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow2">'
+          +'<div><label>Épaisseur rail</label><select class="fselect" id="pl-doub-rail"><option value="50" selected>50 mm</option><option value="75">75 mm</option><option value="100">100 mm</option></select></div>'
+          +'<div><label>Nb couches</label><select class="fselect" id="pl-doub-couches"><option value="1" selected>1 couche</option><option value="2">2 couches</option></select></div>'
+        +'</div>'
+        +'<div class="frow"><label>Type de plaque</label><select class="fselect" id="pl-doub-type"><option value="std" selected>Standard</option><option value="hydro">Hydrofuge</option><option value="feu">Anti-feu</option></select></div>'
+        +'<div class="frow"><label>Finition joints</label><select class="fselect" id="pl-doub-finit"><option value="bande" selected>Bande blanche papier</option><option value="auto">Bande autocollante</option></select></div>'
+      );
+
+      // ④ Alba
+      s += pSubSection('alba', '④', 'Doublage Alba (collé)',
+        '<div class="frow"><label>Surface Alba</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="pl-surf-alba" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow2">'
+          +'<div><label>Type Alba</label><select class="fselect" id="pl-alba-type"><option value="blanc" selected>Blanc</option><option value="hydro">Hydrofuge</option></select></div>'
+          +'<div><label>Épaisseur</label><select class="fselect" id="pl-alba-ep"><option value="2">2 cm</option><option value="4" selected>4 cm</option><option value="6">6 cm</option><option value="8">8 cm</option><option value="10">10 cm</option><option value="12">12 cm</option></select></div>'
+        +'</div>'
+        +'<label class="crow" id="pl-alba-liege-row"><input type="checkbox" id="pl-alba-liege" onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Sous-couche liège</span></label>'
+      );
+
+      // ⑤ Laine seule
+      s += pSubSection('laine', '⑤', 'Laine d\'isolation (seule)',
+        '<div class="frow"><label>Surface laine</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="pl-surf-laine" placeholder="0"><span class="unit-tag">m²</span></div>'
+        +'<div class="tip">À utiliser si pas déjà incluse dans cloisons</div></div>'
+        +'<div class="frow"><label>Épaisseur</label><select class="fselect" id="pl-laine-ep"><option value="4">4 cm</option><option value="5" selected>5 cm</option><option value="6">6 cm</option></select></div>'
+      );
+
+      // ⑥ Faux plafond
+      s += pSubSection('fp', '⑥', 'Faux plafond',
+        '<div class="frow"><label>Surface faux plafond</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="pl-surf-fp" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow"><label>Périmètre (profil de bord)</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="pl-fp-perim" placeholder="0"><span class="unit-tag">m</span></div>'
+        +'<div class="tip">0 = calcul auto depuis la surface</div></div>'
+        +'<div class="frow2">'
+          +'<div><label>Suspensions</label><select class="fselect" id="pl-fp-susp"><option value="courte" selected>Courte</option><option value="longue">Longue (tige)</option></select></div>'
+          +'<div><label>Couches placo</label><select class="fselect" id="pl-fp-couches"><option value="1" selected>1 couche</option><option value="2">2 couches</option></select></div>'
+        +'</div>'
+        +'<div class="frow"><label>Type de plaque</label><select class="fselect" id="pl-fp-type"><option value="std" selected>Standard</option><option value="hydro">Hydrofuge</option><option value="feu">Anti-feu</option></select></div>'
+        +'<div class="frow"><label>Finition joints</label><select class="fselect" id="pl-fp-finit"><option value="bande" selected>Bande blanche papier</option><option value="auto">Bande autocollante</option></select></div>'
+      );
+
+      return s;
     },
     calc: function(){
-      var m2enduit = num(document.getElementById('pl-surf-enduit').value);
-      var ep = parseInt(document.getElementById('pl-epais').value)||2;
-      var m2ba13 = num(document.getElementById('pl-surf-ba13').value);
       var items = [];
       var ctx = [];
-      // Enduit (kg/m² = 1 kg par mm)
+
+      // Helpers locaux
+      function plaqueLbl(t){return {std:'Plaque BA13 standard', hydro:'Plaque BA13 hydrofuge (verte)', feu:'Plaque BA13 anti-feu (rose)'}[t];}
+      function bandeLbl(t){return t==='auto' ? 'Bande à joints autocollante' : 'Bande blanche à joints papier';}
+      function typeLbl(t){return {std:'std', hydro:'hydro', feu:'anti-feu'}[t];}
+
+      // Constants : entraxe 62.5 cm → ~1.6 lm de montants par m² (pour h=1m), donc 1.6 lm/m² de cloison
+      var ENTRAXE_LM = 1.6; // lm de montants par m² de cloison/doublage (entraxe 62.5)
+
+      // === ① Lissage ===
+      var m2enduit = num(document.getElementById('pl-surf-enduit').value);
+      var ep = parseInt(document.getElementById('pl-epais').value)||2;
       if(m2enduit > 0){
         var kgEnduit = m2enduit * ep * 1.0;
         items.push({name:'Enduit de lissage (poudre)', qty:Math.ceil(kgEnduit), unit:'kg', pack:packKg(kgEnduit, 25)});
-        ctx.push(m2enduit.toFixed(0)+' m² lissage '+ep+' mm');
+        ctx.push(m2enduit.toFixed(0)+' m² lissage '+ep+'mm');
       }
-      // BA13
-      if(m2ba13 > 0){
-        var nbPlaques = Math.ceil(withMargin(m2ba13, 5) / 2.5); // 1 plaque = 2.5 m² (1.20×2.50), +5% chutes
-        items.push({name:'Plaque BA13 standard (1.20×2.50)', qty:nbPlaques, unit:'pcs', pack:'≈ '+(nbPlaques*2.5).toFixed(0)+' m² couvert'});
-        items.push({name:'Vis pour plaques BA13', qty:Math.ceil(m2ba13 * 25), unit:'pcs'});
-        items.push({name:'Bande à joint papier', qty:Math.ceil(m2ba13 * 3), unit:'m'});
-        items.push({name:'Enduit à joint', qty:Math.ceil(m2ba13 * 0.5), unit:'kg', pack:packKg(m2ba13 * 0.5, 25)});
-        ctx.push(m2ba13.toFixed(0)+' m² BA13');
+
+      // === ② Cloisons placo-plâtre (2 faces) ===
+      var m2clo = num(document.getElementById('pl-surf-clo').value);
+      if(m2clo > 0){
+        var rail = parseInt(document.getElementById('pl-clo-rail').value)||50;
+        var couches = parseInt(document.getElementById('pl-clo-couches').value)||1;
+        var ptype = document.getElementById('pl-clo-type').value;
+        var hasLaine = document.getElementById('pl-clo-laine').checked;
+        var laineEp = parseInt(document.getElementById('pl-clo-laine-ep').value)||5;
+        var pfinit = document.getElementById('pl-clo-finit').value;
+
+        // Rails (entraxe 62.5cm, donc 1.6 lm montants/m²) - 1 seule rangée au centre
+        items.push({name:'Montant '+rail+' mm (entraxe 62.5)', qty:Math.ceil(m2clo * ENTRAXE_LM), unit:'m'});
+        items.push({name:'Rail U '+rail+' mm (sol/plafond)', qty:Math.ceil(m2clo * 0.8), unit:'m'});
+
+        // Plaques : ×2 faces × couches
+        var nbPlaquesClo = Math.ceil(withMargin(m2clo, 5) * 2 * couches / 2.5);
+        items.push({name:plaqueLbl(ptype)+' (1.20×2.50)', qty:nbPlaquesClo, unit:'pcs', pack:'2 faces × '+couches+' couche'+(couches>1?'s':'')+' ≈ '+(nbPlaquesClo*2.5).toFixed(0)+' m²'});
+
+        // Vis (25/m² par face × couches)
+        items.push({name:'Vis TF placo 25 mm', qty:Math.ceil(m2clo * 25 * 2 * couches), unit:'pcs'});
+        items.push({name:'Vis tôle pour rails', qty:Math.ceil(m2clo * 4), unit:'pcs'});
+
+        // Laine
+        if(hasLaine){
+          items.push({name:'Laine d\'isolation '+laineEp+' cm (cloison)', qty:Math.ceil(withMargin(m2clo, 5)), unit:'m²'});
+        }
+
+        // Joints (×2 faces)
+        items.push({name:bandeLbl(pfinit)+' (cloison)', qty:Math.ceil(m2clo * 3 * 2), unit:'m'});
+        items.push({name:'Enduit à joint (cloison)', qty:Math.ceil(m2clo * 0.5 * 2), unit:'kg', pack:packKg(m2clo * 0.5 * 2, 25)});
+
+        ctx.push(m2clo.toFixed(0)+' m² cloison '+rail+'mm '+typeLbl(ptype)+(couches>1?' ×2':'')+(hasLaine?' +laine':''));
       }
+
+      // === ③ Doublage placo (1 face) ===
+      var m2doub = num(document.getElementById('pl-surf-doub').value);
+      if(m2doub > 0){
+        var dRail = parseInt(document.getElementById('pl-doub-rail').value)||50;
+        var dCouches = parseInt(document.getElementById('pl-doub-couches').value)||1;
+        var dType = document.getElementById('pl-doub-type').value;
+        var dFinit = document.getElementById('pl-doub-finit').value;
+
+        items.push({name:'Montant '+dRail+' mm (entraxe 62.5)', qty:Math.ceil(m2doub * ENTRAXE_LM), unit:'m'});
+        items.push({name:'Rail U '+dRail+' mm (sol/plafond)', qty:Math.ceil(m2doub * 0.8), unit:'m'});
+
+        var nbPlaquesD = Math.ceil(withMargin(m2doub, 5) * dCouches / 2.5);
+        items.push({name:plaqueLbl(dType)+' (doublage)', qty:nbPlaquesD, unit:'pcs', pack:'≈ '+(nbPlaquesD*2.5).toFixed(0)+' m²'+(dCouches>1?' ('+dCouches+' couches)':'')});
+
+        items.push({name:'Vis TF placo 25 mm (doublage)', qty:Math.ceil(m2doub * 25 * dCouches), unit:'pcs'});
+        items.push({name:'Vis tôle pour rails', qty:Math.ceil(m2doub * 4), unit:'pcs'});
+
+        items.push({name:bandeLbl(dFinit)+' (doublage)', qty:Math.ceil(m2doub * 3), unit:'m'});
+        items.push({name:'Enduit à joint (doublage)', qty:Math.ceil(m2doub * 0.5), unit:'kg', pack:packKg(m2doub * 0.5, 25)});
+
+        ctx.push(m2doub.toFixed(0)+' m² doublage '+dRail+'mm '+typeLbl(dType)+(dCouches>1?' ×2':''));
+      }
+
+      // === ④ Alba ===
+      var m2alba = num(document.getElementById('pl-surf-alba').value);
+      if(m2alba > 0){
+        var albaType = document.getElementById('pl-alba-type').value;
+        var albaEp = parseInt(document.getElementById('pl-alba-ep').value)||4;
+        var hasLiege = document.getElementById('pl-alba-liege').checked;
+        var albaLabel = albaType==='hydro' ? 'Plaque Alba hydrofuge' : 'Plaque Alba blanc';
+        items.push({name:albaLabel+' '+albaEp+' cm', qty:Math.ceil(withMargin(m2alba, 5)), unit:'m²'});
+        var kgMap = m2alba * 5;
+        items.push({name:'Mortier adhésif MAP (collage Alba)', qty:Math.ceil(kgMap), unit:'kg', pack:packKg(kgMap, 25)});
+        if(hasLiege){
+          items.push({name:'Sous-couche liège (rouleau)', qty:Math.ceil(withMargin(m2alba, 5)), unit:'m²'});
+        }
+        ctx.push(m2alba.toFixed(0)+' m² Alba '+albaEp+'cm'+(hasLiege?' +liège':''));
+      }
+
+      // === ⑤ Laine seule ===
+      var m2laine = num(document.getElementById('pl-surf-laine').value);
+      if(m2laine > 0){
+        var lEp = parseInt(document.getElementById('pl-laine-ep').value)||5;
+        items.push({name:'Laine d\'isolation '+lEp+' cm', qty:Math.ceil(withMargin(m2laine, 5)), unit:'m²'});
+        ctx.push(m2laine.toFixed(0)+' m² laine '+lEp+'cm');
+      }
+
+      // === ⑥ Faux plafond ===
+      var m2fp = num(document.getElementById('pl-surf-fp').value);
+      if(m2fp > 0){
+        var perim = num(document.getElementById('pl-fp-perim').value);
+        var fpSusp = document.getElementById('pl-fp-susp').value;
+        var fpCouches = parseInt(document.getElementById('pl-fp-couches').value)||1;
+        var fpType = document.getElementById('pl-fp-type').value;
+        var fpFinit = document.getElementById('pl-fp-finit').value;
+
+        if(perim<=0){ perim = Math.ceil(4*Math.sqrt(m2fp)); }
+
+        var suspLabel = fpSusp==='longue' ? 'Suspension longue (tige filetée)' : 'Suspension courte (coulissante)';
+        items.push({name:suspLabel, qty:Math.ceil(m2fp * 1.4), unit:'pcs'});
+
+        // Fourrures F47 entraxe 60cm → 1.7 lm/m²
+        items.push({name:'Fourrure métallique F47', qty:Math.ceil(m2fp * 1.7), unit:'m'});
+        items.push({name:'Éclisses / connecteurs F47', qty:Math.ceil(m2fp * 1.7 / 3), unit:'pcs'});
+
+        items.push({name:'Cornière périphérique (profil de bord)', qty:Math.ceil(perim), unit:'m'});
+
+        var nbPlaquesFp = Math.ceil(withMargin(m2fp, 5) * fpCouches / 2.5);
+        items.push({name:plaqueLbl(fpType)+' (plafond)', qty:nbPlaquesFp, unit:'pcs', pack:'≈ '+(nbPlaquesFp*2.5).toFixed(0)+' m²'+(fpCouches>1?' ('+fpCouches+' couches)':'')});
+
+        items.push({name:'Vis TF placo 25 mm (plafond)', qty:Math.ceil(m2fp * 30 * fpCouches), unit:'pcs'});
+
+        items.push({name:bandeLbl(fpFinit)+' (plafond)', qty:Math.ceil(m2fp * 3), unit:'m'});
+        items.push({name:'Enduit à joint (plafond)', qty:Math.ceil(m2fp * 0.5), unit:'kg', pack:packKg(m2fp * 0.5, 25)});
+
+        ctx.push(m2fp.toFixed(0)+' m² FP '+typeLbl(fpType)+(fpCouches>1?' ×2':''));
+      }
+
       return {ctx:ctx.join(' · '), items:items};
     }
   },
