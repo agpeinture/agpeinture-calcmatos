@@ -295,45 +295,345 @@ var METIERS = {
   peinture: {
     icon:'🎨', label:'Peinture', color:'#3DB8D4',
     renderInputs: function(){
-      return '<div class="frow"><label>Surface murs/plafond à peindre</label><div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-surface" placeholder="0"><span class="unit-tag">m²</span></div></div>'
-        +'<div class="frow"><label>Surface des ouvertures à déduire (portes/fenêtres)</label><div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-deduc" placeholder="0"><span class="unit-tag">m²</span></div><div class="tip">Une porte ≈ 2 m², une fenêtre ≈ 1.5 m²</div></div>'
+      var s = '<div class="tip" style="margin-bottom:10px">Touche un titre pour ouvrir/fermer la section.</div>';
+
+      // ① Murs intérieurs (dispersion)
+      s += pSubSection('mi', '①', 'Murs intérieurs (dispersion)',
+        '<div class="frow"><label>Surface murs</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-mi-surf" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow"><label>Ouvertures à déduire</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-mi-deduc" placeholder="0"><span class="unit-tag">m²</span></div>'
+        +'<div class="tip">Porte ≈ 2 m² · fenêtre ≈ 1.5 m²</div></div>'
         +'<div class="frow2">'
-          +'<div><label>Nb couches</label><select class="fselect" id="p-couches"><option value="1">1 couche</option><option value="2" selected>2 couches</option><option value="3">3 couches</option></select></div>'
-          +'<div><label>Finition</label><select class="fselect" id="p-finition"><option value="mat">Mate</option><option value="satin">Satinée</option><option value="brill">Brillante</option></select></div>'
+          +'<div><label>Nb couches</label><select class="fselect" id="p-mi-couches"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>'
+          +'<div><label>Finition</label><select class="fselect" id="p-mi-finit"><option value="mat" selected>Mate</option><option value="satin">Satinée</option><option value="brill">Brillante</option></select></div>'
         +'</div>'
-        +'<label class="crow on" id="p-appret-row"><input type="checkbox" id="p-appret" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Avec apprêt mural (sous-couche)</span></label>'
-        +'<label class="crow on" id="p-protect-row"><input type="checkbox" id="p-protect" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Inclure protections (ruban, bâche, manchons)</span></label>';
+        +'<label class="crow on" id="p-mi-app-row"><input type="checkbox" id="p-mi-app" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Apprêt mural (sous-couche)</span></label>'
+      );
+
+      // ② Plafonds intérieurs (dispersion plafond)
+      s += pSubSection('pi', '②', 'Plafonds intérieurs (dispersion)',
+        '<div class="frow"><label>Surface plafond</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-pi-surf" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow"><label>Nb couches</label><select class="fselect" id="p-pi-couches"><option value="1">1 couche</option><option value="2" selected>2 couches</option></select></div>'
+        +'<label class="crow on" id="p-pi-app-row"><input type="checkbox" id="p-pi-app" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Apprêt plafond</span></label>'
+      );
+
+      // ③ Crépi intérieur
+      s += pSubSection('ci', '③', 'Crépi intérieur',
+        '<div class="frow"><label>Surface</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-ci-surf" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow"><label>Type de finition</label><select class="fselect" id="p-ci-type"><option value="taloche" selected>Taloché fin (1-2 mm)</option><option value="ecrase">Écrasé / grésé (2 mm)</option><option value="rustic">Rustique (3-4 mm)</option></select></div>'
+        +'<label class="crow on" id="p-ci-acc-row"><input type="checkbox" id="p-ci-acc" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Sous-couche d\'accrochage</span></label>'
+      );
+
+      // ④ Façade / murs extérieurs (dispersion)
+      s += pSubSection('me', '④', 'Façade / murs extérieurs (dispersion)',
+        '<div class="frow"><label>Surface façade</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-me-surf" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow"><label>Ouvertures à déduire</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-me-deduc" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow2">'
+          +'<div><label>Nb couches</label><select class="fselect" id="p-me-couches"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>'
+          +'<div><label>Type</label><select class="fselect" id="p-me-type"><option value="acryl" selected>Acrylique</option><option value="silox">Siloxane</option><option value="plio">Pliolite</option></select></div>'
+        +'</div>'
+        +'<label class="crow on" id="p-me-fix-row"><input type="checkbox" id="p-me-fix" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Fixateur de fond</span></label>'
+      );
+
+      // ⑤ Crépi extérieur (façade)
+      s += pSubSection('ce', '⑤', 'Crépi extérieur (façade)',
+        '<div class="frow"><label>Surface façade</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-ce-surf" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow"><label>Type de finition</label><select class="fselect" id="p-ce-type"><option value="taloche" selected>Taloché (2 mm)</option><option value="gratte">Gratté (2-3 mm)</option><option value="rustic">Rustique (4-6 mm)</option></select></div>'
+        +'<label class="crow on" id="p-ce-se-row"><input type="checkbox" id="p-ce-se" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Sous-enduit</span></label>'
+        +'<label class="crow" id="p-ce-tr-row"><input type="checkbox" id="p-ce-tr" onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Treillis fibre verre (renfort)</span></label>'
+      );
+
+      // ⑥ Boiseries intérieures (émail)
+      s += pSubSection('bi', '⑥', 'Boiseries intérieures (émail)',
+        '<div class="frow2">'
+          +'<div><label>Portes int. 1 face</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-bi-p1" placeholder="0"></div>'
+          +'<div><label>Portes int. 2 faces</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-bi-p2" placeholder="0"></div>'
+        +'</div>'
+        +'<div class="frow2">'
+          +'<div><label>Fenêtres int. 1 face</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-bi-f1" placeholder="0"></div>'
+          +'<div><label>Fenêtres int. 2 faces</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-bi-f2" placeholder="0"></div>'
+        +'</div>'
+        +'<div class="frow2">'
+          +'<div><label>Armoires (nb)</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-bi-arm" placeholder="0"></div>'
+          +'<div><label>Radiateurs (nb)</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-bi-rad" placeholder="0"></div>'
+        +'</div>'
+        +'<div class="frow"><label>Plinthes / encadrements</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-bi-plin" placeholder="0"><span class="unit-tag">m</span></div></div>'
+        +'<div class="frow2">'
+          +'<div><label>Type émail</label><select class="fselect" id="p-bi-finit"><option value="satin" selected>Satin</option><option value="brill">Brillant</option><option value="mat">Mat</option></select></div>'
+          +'<div><label>Couches</label><select class="fselect" id="p-bi-couches"><option value="1">1</option><option value="2" selected>2</option></select></div>'
+        +'</div>'
+        +'<label class="crow on" id="p-bi-app-row"><input type="checkbox" id="p-bi-app" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Apprêt boiseries (impression)</span></label>'
+      );
+
+      // ⑦ Boiseries extérieures (laque)
+      s += pSubSection('be', '⑦', 'Boiseries extérieures (laque)',
+        '<div class="frow2">'
+          +'<div><label>Portes ext. 1 face</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-be-p1" placeholder="0"></div>'
+          +'<div><label>Portes ext. 2 faces</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-be-p2" placeholder="0"></div>'
+        +'</div>'
+        +'<div class="frow2">'
+          +'<div><label>Fenêtres ext. 1 face</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-be-f1" placeholder="0"></div>'
+          +'<div><label>Fenêtres ext. 2 faces</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-be-f2" placeholder="0"></div>'
+        +'</div>'
+        +'<div class="frow2">'
+          +'<div><label>Volets 1 face</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-be-v1" placeholder="0"></div>'
+          +'<div><label>Volets 2 faces</label><input class="finput" type="number" inputmode="numeric" step="1" min="0" id="p-be-v2" placeholder="0"></div>'
+        +'</div>'
+        +'<div class="frow"><label>Avant-toits / sous-toiture</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-be-at" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow2">'
+          +'<div><label>Type laque</label><select class="fselect" id="p-be-finit"><option value="satin" selected>Satin</option><option value="brill">Brillant</option></select></div>'
+          +'<div><label>Couches</label><select class="fselect" id="p-be-couches"><option value="1">1</option><option value="2" selected>2</option></select></div>'
+        +'</div>'
+        +'<label class="crow on" id="p-be-app-row"><input type="checkbox" id="p-be-app" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Imprégnation / apprêt extérieur</span></label>'
+      );
+
+      // ⑧ Métal / serrurerie (antirouille)
+      s += pSubSection('met', '⑧', 'Métal / serrurerie (antirouille)',
+        '<div class="frow"><label>Barrières / garde-corps</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-met-bar" placeholder="0"><span class="unit-tag">m</span></div>'
+        +'<div class="tip">Compté ~2 m²/ml (barreaux + main courante 2 faces)</div></div>'
+        +'<div class="frow"><label>Portails / portes métal</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-met-port" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow"><label>Autres surfaces métal</label>'
+        +'<div class="finput-with-unit"><input class="finput" type="number" inputmode="decimal" step="1" min="0" id="p-met-aut" placeholder="0"><span class="unit-tag">m²</span></div></div>'
+        +'<div class="frow2">'
+          +'<div><label>Finition</label><select class="fselect" id="p-met-finit"><option value="satin" selected>Satin</option><option value="brill">Brillant</option></select></div>'
+          +'<div><label>Couches</label><select class="fselect" id="p-met-couches"><option value="1">1</option><option value="2" selected>2</option></select></div>'
+        +'</div>'
+        +'<label class="crow on" id="p-met-app-row"><input type="checkbox" id="p-met-app" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Apprêt antirouille</span></label>'
+      );
+
+      // ⑨ Protections (chantier)
+      s += pSubSection('prot', '⑨', 'Protections (chantier)',
+        '<label class="crow on" id="p-prot-row"><input type="checkbox" id="p-prot" checked onchange="this.parentElement.classList.toggle(\'on\',this.checked)"><span>Inclure protections (ruban, bâche, manchons)</span></label>'
+        +'<div class="tip">Calculées auto sur la surface totale des sections actives</div>'
+      );
+
+      return s;
     },
     calc: function(){
-      var m2 = Math.max(0, num(document.getElementById('p-surface').value) - num(document.getElementById('p-deduc').value));
-      var couches = parseInt(document.getElementById('p-couches').value)||2;
-      var finition = document.getElementById('p-finition').value;
-      var hasAppret = document.getElementById('p-appret').checked;
-      var hasProtect = document.getElementById('p-protect').checked;
       var items = [];
-      if(m2 <= 0) return {ctx:'', items:items};
+      var ctx = [];
+      var totalSurf = 0;
 
-      // Ratios de consommation L/m²/couche
-      var ratios = {mat:0.13, satin:0.12, brill:0.11};
-      var fLabel = finition==='mat' ? 'mate' : (finition==='satin' ? 'satinée' : 'brillante');
+      // Ratios consommation L/m²/couche
+      var ratiosInt = {mat:0.13, satin:0.12, brill:0.11};
+      var ratiosExt = {acryl:0.25, silox:0.28, plio:0.22};
+      var ratiosEmail = {satin:0.10, brill:0.09, mat:0.11};
 
-      // Apprêt (1 couche)
-      if(hasAppret){
-        var lApp = m2 * 0.10;
-        items.push({name:'Apprêt mural', qty:Math.ceil(lApp*10)/10, unit:'L', pack:packLitres(lApp)});
+      // === ① Murs intérieurs (dispersion) ===
+      var miSurf = Math.max(0, num(document.getElementById('p-mi-surf').value) - num(document.getElementById('p-mi-deduc').value));
+      if(miSurf > 0){
+        var miCouches = parseInt(document.getElementById('p-mi-couches').value)||2;
+        var miFinit = document.getElementById('p-mi-finit').value;
+        var miApp = document.getElementById('p-mi-app').checked;
+        var fLbl = miFinit==='mat'?'mate':(miFinit==='satin'?'satinée':'brillante');
+
+        if(miApp){
+          var lApp = miSurf * 0.10;
+          items.push({name:'Apprêt mural intérieur', qty:Math.ceil(lApp*10)/10, unit:'L', pack:packLitres(lApp)});
+        }
+        var lP = miSurf * miCouches * (ratiosInt[miFinit]||0.13);
+        items.push({name:'Dispersion murs intérieurs '+fLbl, qty:Math.ceil(lP*10)/10, unit:'L', pack:packLitres(lP)});
+
+        ctx.push(miSurf.toFixed(0)+' m² murs '+miCouches+'c '+fLbl);
+        totalSurf += miSurf;
       }
-      // Peinture finition
-      var lPeint = m2 * couches * (ratios[finition]||0.13);
-      items.push({name:'Peinture finition '+fLabel, qty:Math.ceil(lPeint*10)/10, unit:'L', pack:packLitres(lPeint)});
 
-      // Protections
-      if(hasProtect){
-        items.push({name:'Ruban de masquage', qty:Math.ceil(m2*0.5), unit:'m'});
-        items.push({name:'Bâche de protection sol', qty:Math.ceil(m2*0.3), unit:'m²'});
-        items.push({name:'Manchons de rouleau', qty:Math.max(1, Math.ceil(m2/50)), unit:'pcs'});
-        items.push({name:'Pinceau angles/plinthes', qty:Math.max(1, Math.ceil(m2/80)), unit:'pcs'});
+      // === ② Plafonds intérieurs (dispersion) ===
+      var piSurf = num(document.getElementById('p-pi-surf').value);
+      if(piSurf > 0){
+        var piCouches = parseInt(document.getElementById('p-pi-couches').value)||2;
+        var piApp = document.getElementById('p-pi-app').checked;
+
+        if(piApp){
+          var lAppP = piSurf * 0.10;
+          items.push({name:'Apprêt plafond', qty:Math.ceil(lAppP*10)/10, unit:'L', pack:packLitres(lAppP)});
+        }
+        var lPP = piSurf * piCouches * 0.14;
+        items.push({name:'Dispersion plafond mate', qty:Math.ceil(lPP*10)/10, unit:'L', pack:packLitres(lPP)});
+
+        ctx.push(piSurf.toFixed(0)+' m² plafond '+piCouches+'c');
+        totalSurf += piSurf;
       }
-      return {ctx:m2.toFixed(0)+' m² · '+couches+' couche'+(couches>1?'s':'')+' '+fLabel, items:items};
+
+      // === ③ Crépi intérieur ===
+      var ciSurf = num(document.getElementById('p-ci-surf').value);
+      if(ciSurf > 0){
+        var ciType = document.getElementById('p-ci-type').value;
+        var ciAcc = document.getElementById('p-ci-acc').checked;
+        var ratioCi = {taloche:1.8, ecrase:2.5, rustic:3.5}[ciType];
+        var ciLbl = {taloche:'taloché fin', ecrase:'écrasé', rustic:'rustique'}[ciType];
+
+        if(ciAcc){
+          var lAcc = ciSurf * 0.15;
+          items.push({name:'Sous-couche d\'accrochage (intérieur)', qty:Math.ceil(lAcc*10)/10, unit:'L', pack:packLitres(lAcc)});
+        }
+        var kgCi = ciSurf * ratioCi;
+        items.push({name:'Crépi intérieur '+ciLbl, qty:Math.ceil(kgCi), unit:'kg', pack:packKg(kgCi, 25)});
+
+        ctx.push(ciSurf.toFixed(0)+' m² crépi int. '+ciLbl);
+        totalSurf += ciSurf;
+      }
+
+      // === ④ Façade / murs extérieurs (dispersion) ===
+      var meSurf = Math.max(0, num(document.getElementById('p-me-surf').value) - num(document.getElementById('p-me-deduc').value));
+      if(meSurf > 0){
+        var meCouches = parseInt(document.getElementById('p-me-couches').value)||2;
+        var meType = document.getElementById('p-me-type').value;
+        var meFix = document.getElementById('p-me-fix').checked;
+        var typeLblExt = {acryl:'acrylique', silox:'siloxane', plio:'pliolite'}[meType];
+
+        if(meFix){
+          var lFix = meSurf * 0.18;
+          items.push({name:'Fixateur de fond façade', qty:Math.ceil(lFix*10)/10, unit:'L', pack:packLitres(lFix)});
+        }
+        var lME = meSurf * meCouches * (ratiosExt[meType]||0.25);
+        items.push({name:'Dispersion façade '+typeLblExt, qty:Math.ceil(lME*10)/10, unit:'L', pack:packLitres(lME)});
+
+        ctx.push(meSurf.toFixed(0)+' m² façade '+meCouches+'c '+typeLblExt);
+        totalSurf += meSurf;
+      }
+
+      // === ⑤ Crépi extérieur (façade) ===
+      var ceSurf = num(document.getElementById('p-ce-surf').value);
+      if(ceSurf > 0){
+        var ceType = document.getElementById('p-ce-type').value;
+        var ceSE = document.getElementById('p-ce-se').checked;
+        var ceTR = document.getElementById('p-ce-tr').checked;
+        var ratioCe = {taloche:3.5, gratte:4.0, rustic:6.0}[ceType];
+        var ceLbl = {taloche:'taloché', gratte:'gratté', rustic:'rustique'}[ceType];
+
+        if(ceSE){
+          var kgSE = ceSurf * 5;
+          items.push({name:'Sous-enduit façade', qty:Math.ceil(kgSE), unit:'kg', pack:packKg(kgSE, 25)});
+        }
+        if(ceTR){
+          items.push({name:'Treillis fibre de verre (renfort)', qty:Math.ceil(withMargin(ceSurf, 10)), unit:'m²'});
+        }
+        var kgCe = ceSurf * ratioCe;
+        items.push({name:'Crépi extérieur '+ceLbl, qty:Math.ceil(kgCe), unit:'kg', pack:packKg(kgCe, 25)});
+
+        ctx.push(ceSurf.toFixed(0)+' m² crépi ext. '+ceLbl);
+        totalSurf += ceSurf;
+      }
+
+      // === ⑥ Boiseries intérieures (émail) ===
+      var bi_p1 = parseInt(document.getElementById('p-bi-p1').value)||0;
+      var bi_p2 = parseInt(document.getElementById('p-bi-p2').value)||0;
+      var bi_f1 = parseInt(document.getElementById('p-bi-f1').value)||0;
+      var bi_f2 = parseInt(document.getElementById('p-bi-f2').value)||0;
+      var bi_arm = parseInt(document.getElementById('p-bi-arm').value)||0;
+      var bi_rad = parseInt(document.getElementById('p-bi-rad').value)||0;
+      var bi_plin = num(document.getElementById('p-bi-plin').value);
+
+      // Conversion en m² : porte 2/4 m² · fenêtre 0.8/1.6 m² · armoire 2.5 m² · radiateur 1.5 m² · plinthe 0.1 m²/ml
+      var biM2 = bi_p1*2 + bi_p2*4 + bi_f1*0.8 + bi_f2*1.6 + bi_arm*2.5 + bi_rad*1.5 + bi_plin*0.1;
+
+      if(biM2 > 0){
+        var biCouches = parseInt(document.getElementById('p-bi-couches').value)||2;
+        var biFinit = document.getElementById('p-bi-finit').value;
+        var biApp = document.getElementById('p-bi-app').checked;
+        var biLbl = {satin:'satin', brill:'brillant', mat:'mat'}[biFinit];
+
+        if(biApp){
+          var lAppB = biM2 * 0.10;
+          items.push({name:'Apprêt boiseries (impression)', qty:Math.ceil(lAppB*10)/10, unit:'L', pack:packLitres(lAppB)});
+        }
+        var lEm = biM2 * biCouches * (ratiosEmail[biFinit]||0.10);
+        items.push({name:'Émail intérieur '+biLbl, qty:Math.ceil(lEm*10)/10, unit:'L', pack:packLitres(lEm)});
+
+        var biParts = [];
+        if(bi_p1+bi_p2>0) biParts.push((bi_p1+bi_p2)+' portes');
+        if(bi_f1+bi_f2>0) biParts.push((bi_f1+bi_f2)+' fenêtres');
+        if(bi_arm>0) biParts.push(bi_arm+' armoires');
+        if(bi_rad>0) biParts.push(bi_rad+' radiat.');
+        if(bi_plin>0) biParts.push(bi_plin+' ml plinthes');
+        ctx.push('boiseries int. : '+biParts.join(', ')+' (~'+biM2.toFixed(0)+' m²)');
+        totalSurf += biM2;
+      }
+
+      // === ⑦ Boiseries extérieures (laque) ===
+      var be_p1 = parseInt(document.getElementById('p-be-p1').value)||0;
+      var be_p2 = parseInt(document.getElementById('p-be-p2').value)||0;
+      var be_f1 = parseInt(document.getElementById('p-be-f1').value)||0;
+      var be_f2 = parseInt(document.getElementById('p-be-f2').value)||0;
+      var be_v1 = parseInt(document.getElementById('p-be-v1').value)||0;
+      var be_v2 = parseInt(document.getElementById('p-be-v2').value)||0;
+      var be_at = num(document.getElementById('p-be-at').value);
+
+      // Porte ext 2.2/4.4 · fenêtre ext 0.9/1.8 · volet 1.2/2.4 · avant-toit m² direct
+      var beM2 = be_p1*2.2 + be_p2*4.4 + be_f1*0.9 + be_f2*1.8 + be_v1*1.2 + be_v2*2.4 + be_at;
+
+      if(beM2 > 0){
+        var beCouches = parseInt(document.getElementById('p-be-couches').value)||2;
+        var beFinit = document.getElementById('p-be-finit').value;
+        var beApp = document.getElementById('p-be-app').checked;
+        var beLbl = {satin:'satin', brill:'brillant'}[beFinit];
+
+        if(beApp){
+          var lAppE = beM2 * 0.12;
+          items.push({name:'Imprégnation / apprêt extérieur (bois)', qty:Math.ceil(lAppE*10)/10, unit:'L', pack:packLitres(lAppE)});
+        }
+        var lLq = beM2 * beCouches * (ratiosEmail[beFinit]||0.10);
+        items.push({name:'Laque extérieure '+beLbl, qty:Math.ceil(lLq*10)/10, unit:'L', pack:packLitres(lLq)});
+
+        var beParts = [];
+        if(be_p1+be_p2>0) beParts.push((be_p1+be_p2)+' portes');
+        if(be_f1+be_f2>0) beParts.push((be_f1+be_f2)+' fenêtres');
+        if(be_v1+be_v2>0) beParts.push((be_v1+be_v2)+' volets');
+        if(be_at>0) beParts.push(be_at.toFixed(0)+' m² avant-toit');
+        ctx.push('boiseries ext. : '+beParts.join(', ')+' (~'+beM2.toFixed(0)+' m²)');
+        totalSurf += beM2;
+      }
+
+      // === ⑧ Métal / serrurerie (antirouille) ===
+      var met_bar = num(document.getElementById('p-met-bar').value);
+      var met_port = num(document.getElementById('p-met-port').value);
+      var met_aut = num(document.getElementById('p-met-aut').value);
+
+      // Barrière ~2 m²/ml (barreaux + main courante)
+      var metM2 = met_bar*2 + met_port + met_aut;
+
+      if(metM2 > 0){
+        var metCouches = parseInt(document.getElementById('p-met-couches').value)||2;
+        var metFinit = document.getElementById('p-met-finit').value;
+        var metApp = document.getElementById('p-met-app').checked;
+        var metLbl = {satin:'satin', brill:'brillant'}[metFinit];
+
+        if(metApp){
+          var lAR = metM2 * 0.12;
+          items.push({name:'Apprêt antirouille', qty:Math.ceil(lAR*10)/10, unit:'L', pack:packLitres(lAR)});
+        }
+        var lMet = metM2 * metCouches * (ratiosEmail[metFinit]||0.10);
+        items.push({name:'Émail antirouille '+metLbl, qty:Math.ceil(lMet*10)/10, unit:'L', pack:packLitres(lMet)});
+
+        var metParts = [];
+        if(met_bar>0) metParts.push(met_bar+' ml barrières');
+        if(met_port>0) metParts.push(met_port.toFixed(0)+' m² portails');
+        if(met_aut>0) metParts.push(met_aut.toFixed(0)+' m² autres');
+        ctx.push('métal : '+metParts.join(', ')+' (~'+metM2.toFixed(0)+' m²)');
+        totalSurf += metM2;
+      }
+
+      // === ⑨ Protections (chantier) ===
+      var hasProt = document.getElementById('p-prot').checked;
+      if(hasProt && totalSurf > 0){
+        items.push({name:'Ruban de masquage', qty:Math.ceil(totalSurf*0.5), unit:'m'});
+        items.push({name:'Bâche de protection sol', qty:Math.ceil(totalSurf*0.3), unit:'m²'});
+        items.push({name:'Manchons de rouleau', qty:Math.max(1, Math.ceil(totalSurf/50)), unit:'pcs'});
+        items.push({name:'Pinceau angles/plinthes', qty:Math.max(1, Math.ceil(totalSurf/80)), unit:'pcs'});
+      }
+
+      return {ctx:ctx.join(' · '), items:items};
     }
   },
 
@@ -451,9 +751,14 @@ var METIERS = {
         var nbPlaquesClo = Math.ceil(withMargin(m2clo, 5) * 2 * couches / 2.5);
         items.push({name:plaqueLbl(ptype)+' (1.20×2.50)', qty:nbPlaquesClo, unit:'pcs', pack:'2 faces × '+couches+' couche'+(couches>1?'s':'')+' ≈ '+(nbPlaquesClo*2.5).toFixed(0)+' m²'});
 
-        // Vis (25/m² par face × couches)
-        items.push({name:'Vis TF placo 25 mm', qty:Math.ceil(m2clo * 25 * 2 * couches), unit:'pcs'});
+        // Vis (25/m² par face × couches) — longueur selon nb couches
+        var visLgClo = couches > 1 ? '35 mm' : '25 mm';
+        items.push({name:'Vis TF placo '+visLgClo, qty:Math.ceil(m2clo * 25 * 2 * couches), unit:'pcs'});
         items.push({name:'Vis tôle pour rails', qty:Math.ceil(m2clo * 4), unit:'pcs'});
+        // Cornière d'angle métallique (estimation angles sortants ~0.2 lm/m²)
+        items.push({name:'Cornière d\'angle (angles sortants)', qty:Math.ceil(m2clo * 0.2), unit:'m'});
+        // Compriband / mousse en bas des U (étanchéité acoustique)
+        items.push({name:'Compriband / mousse étanchéité (sous U)', qty:Math.ceil(m2clo * 0.8), unit:'m'});
 
         // Laine
         if(hasLaine){
@@ -481,8 +786,10 @@ var METIERS = {
         var nbPlaquesD = Math.ceil(withMargin(m2doub, 5) * dCouches / 2.5);
         items.push({name:plaqueLbl(dType)+' (doublage)', qty:nbPlaquesD, unit:'pcs', pack:'≈ '+(nbPlaquesD*2.5).toFixed(0)+' m²'+(dCouches>1?' ('+dCouches+' couches)':'')});
 
-        items.push({name:'Vis TF placo 25 mm (doublage)', qty:Math.ceil(m2doub * 25 * dCouches), unit:'pcs'});
+        var visLgD = dCouches > 1 ? '35 mm' : '25 mm';
+        items.push({name:'Vis TF placo '+visLgD+' (doublage)', qty:Math.ceil(m2doub * 25 * dCouches), unit:'pcs'});
         items.push({name:'Vis tôle pour rails', qty:Math.ceil(m2doub * 4), unit:'pcs'});
+        items.push({name:'Cornière d\'angle (angles sortants)', qty:Math.ceil(m2doub * 0.2), unit:'m'});
 
         items.push({name:bandeLbl(dFinit)+' (doublage)', qty:Math.ceil(m2doub * 3), unit:'m'});
         items.push({name:'Enduit à joint (doublage)', qty:Math.ceil(m2doub * 0.5), unit:'kg', pack:packKg(m2doub * 0.5, 25)});
@@ -526,18 +833,29 @@ var METIERS = {
         if(perim<=0){ perim = Math.ceil(4*Math.sqrt(m2fp)); }
 
         var suspLabel = fpSusp==='longue' ? 'Suspension longue (tige filetée)' : 'Suspension courte (coulissante)';
-        items.push({name:suspLabel, qty:Math.ceil(m2fp * 1.4), unit:'pcs'});
+        var nbSusp = Math.ceil(m2fp * 1.4);
+        items.push({name:suspLabel, qty:nbSusp, unit:'pcs'});
+        // Cheville à frapper pour fixation des suspensions à la dalle
+        items.push({name:'Cheville à frapper 6×60 (suspensions)', qty:nbSusp, unit:'pcs'});
+        // Tige filetée + écrou si suspensions longues
+        if(fpSusp==='longue'){
+          items.push({name:'Tige filetée M6 1m + écrou', qty:nbSusp, unit:'pcs'});
+        }
 
-        // Fourrures F47 entraxe 60cm → 1.7 lm/m²
-        items.push({name:'Fourrure métallique F47', qty:Math.ceil(m2fp * 1.7), unit:'m'});
-        items.push({name:'Éclisses / connecteurs F47', qty:Math.ceil(m2fp * 1.7 / 3), unit:'pcs'});
+        // Ossature croisée : profilé chapeau (primaire) ⟂ F47 (secondaire)
+        items.push({name:'Profilé chapeau / porteur (primaire)', qty:Math.ceil(m2fp * 0.85), unit:'m'});
+        items.push({name:'Fourrure métallique F47 (secondaire)', qty:Math.ceil(m2fp * 1.7), unit:'m'});
+        items.push({name:'Connecteurs croisés (chapeau ⟂ F47)', qty:Math.ceil(m2fp * 1.4), unit:'pcs'});
+        items.push({name:'Éclisses F47 (raccords)', qty:Math.ceil(m2fp * 1.7 / 3), unit:'pcs'});
 
         items.push({name:'Cornière périphérique (profil de bord)', qty:Math.ceil(perim), unit:'m'});
 
         var nbPlaquesFp = Math.ceil(withMargin(m2fp, 5) * fpCouches / 2.5);
         items.push({name:plaqueLbl(fpType)+' (plafond)', qty:nbPlaquesFp, unit:'pcs', pack:'≈ '+(nbPlaquesFp*2.5).toFixed(0)+' m²'+(fpCouches>1?' ('+fpCouches+' couches)':'')});
 
-        items.push({name:'Vis TF placo 25 mm (plafond)', qty:Math.ceil(m2fp * 30 * fpCouches), unit:'pcs'});
+        // Vis adaptée selon nb couches
+        var visLgFp = fpCouches > 1 ? '35 mm' : '25 mm';
+        items.push({name:'Vis TF placo '+visLgFp+' (plafond)', qty:Math.ceil(m2fp * 30 * fpCouches), unit:'pcs'});
 
         items.push({name:bandeLbl(fpFinit)+' (plafond)', qty:Math.ceil(m2fp * 3), unit:'m'});
         items.push({name:'Enduit à joint (plafond)', qty:Math.ceil(m2fp * 0.5), unit:'kg', pack:packKg(m2fp * 0.5, 25)});
